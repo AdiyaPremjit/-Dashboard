@@ -1560,7 +1560,7 @@ st.markdown("""
 
 # --------------------------------------------
 # 1. LOAD DATA
-# --------------------------------------------
+# -------------------------------------------
 elif page == "📊 Habitability and Circumbinary analysis":
     st.title("📊 Habitability and Circumbinary analysis")
     @st.cache_data
