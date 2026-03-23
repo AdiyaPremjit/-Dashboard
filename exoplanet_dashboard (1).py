@@ -1562,7 +1562,7 @@ st.markdown("""
 # 1. LOAD DATA
 # --------------------------------------------
 elif page == "📊 Habitability and Circumbinary analysis":
-    st.title("📊 Habitability and Circumbinary analysi")
+    st.title("📊 Habitability and Circumbinary analysis")
     @st.cache_data
     def load_data():
         url = "https://exoplanetarchive.ipac.caltech.edu/TAP/sync?query=select+pl_name,pl_rade,pl_bmasse,st_met,st_teff,discoverymethod,cb_flag+from+pscomppars&format=csv"
@@ -1718,3 +1718,4 @@ st.bar_chart(df['planet_type'].value_counts())
 st.write("Sample Data:")
 st.dataframe(df.head())
 st.markdown("---")
+
