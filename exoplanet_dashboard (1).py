@@ -1563,10 +1563,10 @@ st.markdown("""
 # --------------------------------------------
 elif page == "📊 Habitability and Circumbinary analysis":
     st.title("📊 Habitability and Circumbinary analysi")
-@st.cache_data
-def load_data():
-    url = "https://exoplanetarchive.ipac.caltech.edu/TAP/sync?query=select+pl_name,pl_rade,pl_bmasse,st_met,st_teff,discoverymethod,cb_flag+from+pscomppars&format=csv"
-    df = pd.read_csv(url)
+    @st.cache_data
+    def load_data():
+        url = "https://exoplanetarchive.ipac.caltech.edu/TAP/sync?query=select+pl_name,pl_rade,pl_bmasse,st_met,st_teff,discoverymethod,cb_flag+from+pscomppars&format=csv"
+        df = pd.read_csv(url)
     return df
 
 df = load_data()
