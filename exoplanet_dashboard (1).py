@@ -1557,19 +1557,12 @@ st.markdown("""
 """, unsafe_allow_html=True)
 # ============================================
 
-import streamlit as st
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-
-st.set_page_config(page_title="Exoplanet Dashboard", layout="wide")
-
-st.title("🌌 Exoplanet Population Analysis Dashboard")
 
 # --------------------------------------------
 # 1. LOAD DATA
 # --------------------------------------------
+elif page == "📊 Habitability and Circumbinary analysis":
+    st.title("📊 Habitability and Circumbinary analysi")
 @st.cache_data
 def load_data():
     url = "https://exoplanetarchive.ipac.caltech.edu/TAP/sync?query=select+pl_name,pl_rade,pl_bmasse,st_met,st_teff,discoverymethod,cb_flag+from+pscomppars&format=csv"
