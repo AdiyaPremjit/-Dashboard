@@ -1724,5 +1724,4 @@ st.bar_chart(df['planet_type'].value_counts())
 
 st.write("Sample Data:")
 st.dataframe(df.head())
-
-    st.markdown("---")
+st.markdown("---")
