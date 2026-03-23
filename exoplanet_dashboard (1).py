@@ -1558,164 +1558,51 @@ st.markdown("""
 # ============================================
 
 
-# --------------------------------------------
-# 1. LOAD DATA
-# -------------------------------------------
-elif page == "📊 Habitability and Circumbinary analysis":
-    st.title("📊 Habitability and Circumbinary analysis")
-    @st.cache_data
-    def load_data():
-        url = "https://exoplanetarchive.ipac.caltech.edu/TAP/sync?query=select+pl_name,pl_rade,pl_bmasse,st_met,st_teff,discoverymethod,cb_flag+from+pscomppars&format=csv"
-        df = pd.read_csv(url)
-    return df
+# ============================================
+# PAGE 4: HABITABILITY AND CIRCUMBINARY ANALYSIS
+# ============================================
+elif page == "🌍 Habitability and Circumbinary analysis":
+    st.title("🌍 Habitability and Circumbinary Analysis")
 
-df = load_data()
-st.write("Initial shape:", df.shape)
+    # --- Circumbinary Planets ---
+    st.subheader("🌗 Circumbinary Planets")
 
-# --------------------------------------------
-# 2. SELECT COLUMNS
-# --------------------------------------------
-cols = [
-    'pl_name', 'pl_rade', 'pl_bmasse',
-    'st_met', 'st_teff', 'discoverymethod', 'cb_flag'
-]
-df = df[cols]
+    if 'cb_flag' in df.columns:
+        circumbinary = df[df['cb_flag'] == 1]
+        st.write("Number of circumbinary planets:", len(circumbinary))
 
-# --------------------------------------------
-# 3. CLEAN DATA
-# --------------------------------------------
-df = df.dropna(subset=['pl_rade']).reset_index(drop=True)
-st.write("After cleaning:", df.shape)
-
-# --------------------------------------------
-# 4. CLASSIFICATION
-# --------------------------------------------
-def classify_planet(r):
-    if r < 1.8:
-        return "Super-Earth"
-    elif r < 4:
-        return "Sub-Neptune"
+        if not circumbinary.empty:
+            fig, ax = plt.subplots(figsize=(8, 5))
+            sns.histplot(df['pl_rade'], label="All planets", alpha=0.5, ax=ax)
+            sns.histplot(circumbinary['pl_rade'], label="Circumbinary", color='red', alpha=0.6, ax=ax)
+            ax.legend()
+            ax.set_xlabel("Planet Radius (Earth Radii)")
+            ax.set_ylabel("Count")
+            ax.set_title("Circumbinary vs General Population")
+            st.pyplot(fig)
     else:
-        return "Giant"
+        st.info("No circumbinary data available in this dataset.")
 
-df['planet_type'] = df['pl_rade'].apply(classify_planet)
+    st.markdown("---")
 
-# SIDEBAR FILTERS
-st.sidebar.header("🔧 Filters")
+    # --- Habitability Filter ---
+    st.subheader("🌍 Potentially Habitable Planets")
 
-planet_types = st.sidebar.multiselect(
-    "Select Planet Type",
-    df['planet_type'].unique(),
-    default=df['planet_type'].unique()
-)
+    habitable = df[
+        (df['pl_rade'] < 2) &        # Earth-size or smaller
+        (df['st_teff'] > 4800) &     # Within habitable temperature range
+        (df['st_teff'] < 6300)
+    ]
 
-df = df[df['planet_type'].isin(planet_types)]
+    st.write("Number of candidates:", len(habitable))
+    st.dataframe(habitable[['hostname', 'pl_name', 'pl_rade', 'st_teff', 'st_met']].head(10))
 
-# --------------------------------------------
-# 5. METALLICITY ANALYSIS
-# --------------------------------------------
-st.header("📊 Metallicity vs Planet Size")
+    if not habitable.empty:
+        fig, ax = plt.subplots(figsize=(8, 5))
+        sns.scatterplot(x='st_teff', y='pl_rade', data=habitable, hue='mission', ax=ax)
+        ax.set_xlabel("Stellar Effective Temperature (K)")
+        ax.set_ylabel("Planet Radius (Earth Radii)")
+        ax.set_title("Habitable Zone Candidates by Mission")
+        st.pyplot(fig)
 
-metal_df = df.dropna(subset=['st_met'])
-metal_rich = metal_df[metal_df['st_met'] > 0]
-metal_poor = metal_df[metal_df['st_met'] <= 0]
-
-fig1, ax1 = plt.subplots()
-ax1.hist(metal_rich['pl_rade'], bins=30, alpha=0.6, label='Metal-rich')
-ax1.hist(metal_poor['pl_rade'], bins=30, alpha=0.6, label='Metal-poor')
-ax1.set_xlabel("Planet Radius (Earth Radii)")
-ax1.set_ylabel("Count")
-ax1.legend()
-ax1.set_title("Planet Size vs Stellar Metallicity")
-
-st.pyplot(fig1)
-
-# --------------------------------------------
-# 6. MASS-RADIUS RELATION
-# --------------------------------------------
-st.header("📈 Mass–Radius Relation")
-
-mr = df.dropna(subset=['pl_bmasse', 'pl_rade'])
-
-fig2, ax2 = plt.subplots()
-ax2.scatter(mr['pl_rade'], mr['pl_bmasse'], alpha=0.5)
-ax2.set_xscale('log')
-ax2.set_yscale('log')
-ax2.set_xlabel("Radius (Earth Radii)")
-ax2.set_ylabel("Mass (Earth Masses)")
-ax2.set_title("Mass-Radius Relation")
-
-st.pyplot(fig2)
-
-# --------------------------------------------
-# 7. METALLICITY vs PLANET TYPE
-# --------------------------------------------
-st.header("🧪 Metallicity vs Planet Type")
-
-fig3, ax3 = plt.subplots()
-sns.boxplot(x='planet_type', y='st_met', data=metal_df, ax=ax3)
-ax3.set_title("Metallicity vs Planet Type")
-
-st.pyplot(fig3)
-
-# --------------------------------------------
-# 8. DETECTION METHOD
-# --------------------------------------------
-st.header("🔭 Detection Method Bias")
-
-method_counts = df['discoverymethod'].value_counts()
-st.write(method_counts)
-
-fig4, ax4 = plt.subplots()
-sns.boxplot(x='discoverymethod', y='pl_rade', data=df, ax=ax4)
-ax4.set_xticklabels(ax4.get_xticklabels(), rotation=45)
-ax4.set_title("Radius vs Detection Method")
-
-st.pyplot(fig4)
-
-# --------------------------------------------
-# 9. CIRCUMBINARY PLANETS
-# --------------------------------------------
-st.header("🌗 Circumbinary Planets")
-
-if 'cb_flag' in df.columns:
-    circumbinary = df[df['cb_flag'] == 1]
-
-    st.write("Circumbinary planets:", len(circumbinary))
-
-    fig5, ax5 = plt.subplots()
-    sns.histplot(df['pl_rade'], label="All planets", alpha=0.5, ax=ax5)
-    sns.histplot(circumbinary['pl_rade'], label="Circumbinary", color='red', alpha=0.6, ax=ax5)
-    ax5.legend()
-    ax5.set_title("Circumbinary vs General Population")
-
-    st.pyplot(fig5)
-else:
-    st.write("No circumbinary data available")
-
-# --------------------------------------------
-# 10. HABITABILITY FILTER
-# --------------------------------------------
-st.header("🌍 Potentially Habitable Planets")
-
-habitable = df[
-    (df['pl_rade'] < 2) &
-    (df['st_teff'] > 4800) &
-    (df['st_teff'] < 6300)
-]
-
-st.write("Number of candidates:", len(habitable))
-st.dataframe(habitable.head())
-
-# --------------------------------------------
-# 11. SUMMARY
-# --------------------------------------------
-st.header("📌 Summary")
-
-st.write("Planet Type Distribution:")
-st.bar_chart(df['planet_type'].value_counts())
-
-st.write("Sample Data:")
-st.dataframe(df.head())
-st.markdown("---")
 
